@@ -111,6 +111,14 @@ type listenerWrapper struct {
 	m map[string]chan string
 }
 
+func GetWebsocket(wac *Conn) *websocket.Conn {
+	return wac.ws.conn
+}
+
+func SetWebsocket(wac *Conn, w *websocket.Conn) {
+	wac.ws.conn = w
+}
+
 /*
 Creates a new connection with a given timeout. The websocket connection to the WhatsAppWeb servers get´s established.
 The goroutine for handling incoming messages is started
@@ -125,29 +133,30 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 func NewConnWithProxy(timeout time.Duration, proxy func(*http.Request) (*url.URL, error)) (*Conn, error) {
 	return NewConnWithOptions(&Options{
 		Timeout: timeout,
-		Proxy: proxy,
+		Proxy:   proxy,
 	})
 }
 
 // NewConnWithOptions Create a new connect with a given options.
 type Options struct {
-	Proxy            func(*http.Request) (*url.URL, error)
-	Timeout          time.Duration
-	Handler          []Handler
-	ShortClientName  string
-	LongClientName   string
-	ClientVersion    string
-	Store            *Store
+	Proxy           func(*http.Request) (*url.URL, error)
+	Timeout         time.Duration
+	Handler         []Handler
+	ShortClientName string
+	LongClientName  string
+	ClientVersion   string
+	Store           *Store
 }
+
 func NewConnWithOptions(opt *Options) (*Conn, error) {
 	if opt == nil {
 		return nil, ErrOptionsNotProvided
 	}
 	wac := &Conn{
-		handler:    make([]Handler, 0),
-		msgCount:   0,
-		msgTimeout: opt.Timeout,
-		Store:      newStore(),
+		handler:         make([]Handler, 0),
+		msgCount:        0,
+		msgTimeout:      opt.Timeout,
+		Store:           newStore(),
 		longClientName:  "github.com/Rhymen/go-whatsapp",
 		shortClientName: "go-whatsapp",
 		clientVersion:   "0.1.0",
